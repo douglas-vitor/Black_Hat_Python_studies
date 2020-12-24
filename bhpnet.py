@@ -54,10 +54,9 @@ def client_sender(buffer):
                 if recv_len < 4096:
                     break
 
-            print(response)
+            print(response, buffer = input(""))
 
             # espera mais dados de entrada
-            buffer = input("")
             buffer += "\n"
 
             # envia os dados
@@ -174,7 +173,7 @@ def main():
     
     # lê as opções de linha de comando
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hle:t:p:cu", ["help", "listen", "execute", "target", "port", "command", "upload"])
+        opts, args = getopt.getopt(sys.argv[1:], "hle:t:p:cu:", ["help", "listen", "execute", "target", "port", "command", "upload"])
     except getopt.GetoptError as err:
         print(err)
         usage()
