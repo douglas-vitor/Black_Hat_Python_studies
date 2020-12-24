@@ -39,12 +39,12 @@ def client_sender(buffer):
         client.connect((target, port))
 
         if len(buffer):
-            client.send(buffer)
+            client.send(buffer.encode())
         
         while True:
             # agora espera receber dados de volta
             recv_len = 1
-            response = ""
+            response = b""
 
             while recv_len:
                 data = client.recv(4096)
@@ -54,16 +54,18 @@ def client_sender(buffer):
                 if recv_len < 4096:
                     break
 
-            print(response, buffer = input(""))
+            print(response)
 
             # espera mais dados de entrada
+            buffer = input("")
             buffer += "\n"
 
             # envia os dados
-            client.send(buffer)
+            client.send(buffer.encode())
     
-    except:
+    except Exception as err:
         print("[*] Exception Exiting.")
+        print(err)
 
         # encerra a conexão
         client.close()
@@ -129,22 +131,22 @@ def client_handler(client_socket):
                 file_descriptor.close()
 
                 # confirma que gravou o arquivo
-                client_socket.send("Successfully saved file to %s\r\n" % upload_destination)
+                client_socket.send(b"Successfully saved file to %s\r\n" % upload_destination)
             except:
-                client_socket.send("Failed to save file to %s\r\n" % upload_destination)
+                client_socket.send(b"Failed to save file to %s\r\n" % upload_destination)
 
     if len(execute):
 
         # executa o comando
         output = run_command(execute)
 
-        client_socket.send(output)
+        client_socket.send(output.encode())
 
     # entra em outro laço se um shell de comandos foi solicitado
     if command:
         while True:
             # mostra um prompt simples
-            client_socket.send("<BHP:#> ")
+            client_socket.send(b"<BHP:#> ")
 
             # agora ficaremos recebendo dados até vermos um linefeed (tecla enter)
 
@@ -156,8 +158,7 @@ def client_handler(client_socket):
             response = run_command(cmd_buffer)
 
             # envia de volta a resposta
-            client_socket.send(response)
-
+            client_socket.send(response.encode())
 
 
 def main():
