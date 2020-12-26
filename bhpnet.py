@@ -33,9 +33,12 @@ def usage():
 
 
 def client_sender(buffer):
+    print("func client_sender() ", target)
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         # conecta-se ao nosso host-alvo
+        print("1 ", target) #apagar----------------------
+        print('2 ', port) #apagar---------------------
         client.connect((target, port))
 
         if len(buffer):
@@ -67,14 +70,16 @@ def client_sender(buffer):
         print("[*] Exception Exiting.")
         print(err)
 
-        # encerra a conexão
+        # encerra a conexao
         client.close()
 
 
 def server_loop():
     global target
+    global port
+    print("func server_loop() ", target, port)
 
-    # se não houver nenhum alvo definido, ouviremos todas as interfaces
+    # se nao houver nenhum alvo definido, ouviremos todas as interfaces
     if not len(target):
         target = "0.0.0.0"
 
@@ -93,12 +98,14 @@ def server_loop():
 def run_command(command):
     # remove a quebra de linha
     command = command.rstrip()
+    print("func run_comand() ", target,port)
 
     # executa o comando e obtem os dados de saida
     try:
         output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
-    except:
+    except Exception as err:
         output = "Failed to execute command.\r\n"
+        print(err)
 
     # envia os dados de saida de volta ao client
     return output
@@ -108,14 +115,16 @@ def client_handler(client_socket):
     global upload
     global execute
     global command
+    print("func client_handler() ", target)
 
-    # verifica se é upload
+    # verifica se e upload
     if len(upload_destination):
+        print("if upload_destination <---")
 
-        # lê todos os bytes e grava em nosso destino
+        # le todos os bytes e grava em nosso destino
         file_buffer = ""
 
-        # permanece lendo os dados até que não haja mais nenhum disponivel
+        # permanece lendo os dados ate que nao haja mais nenhum disponivel
         while True:
             data = client_socket.recv(1024)
 
@@ -132,26 +141,28 @@ def client_handler(client_socket):
 
                 # confirma que gravou o arquivo
                 client_socket.send(b"Successfully saved file to %s\r\n" % upload_destination)
-            except:
+            except Exception as err:
                 client_socket.send(b"Failed to save file to %s\r\n" % upload_destination)
+                print(err)
 
     if len(execute):
+        print("if execute <----")
 
         # executa o comando
         output = run_command(execute)
 
         client_socket.send(output.encode())
 
-    # entra em outro laço se um shell de comandos foi solicitado
+    # entra em outro laco se um shell de comandos foi solicitado
     if command:
         while True:
             # mostra um prompt simples
             client_socket.send(b"<BHP:#> ")
 
-            # agora ficaremos recebendo dados até vermos um linefeed (tecla enter)
+            # agora ficaremos recebendo dados ate vermos um linefeed (tecla enter)
 
-            cmd_buffer = ""
-            while "\n" not in cmd_buffer:
+            cmd_buffer = b""
+            while b"\n" not in cmd_buffer:
                 cmd_buffer += client_socket.recv(1024)
 
             # envia de volta a saida do comando
@@ -168,50 +179,59 @@ def main():
     global command
     global upload_destination
     global target
+    print("func main() ", target) #apagar------------------
 
     if not len(sys.argv[1:]):
         usage()
     
-    # lê as opções de linha de comando
+    # le as opcoes de linha de comando
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hle:t:p:cu:", ["help", "listen", "execute", "target", "port", "command", "upload"])
+        opts, args = getopt.getopt(sys.argv[1:], "hle:t:p:cu")
     except getopt.GetoptError as err:
         print(err)
         usage()
-
+    print("01 ", opts)
+    print("02 ", args)
     for o,a in opts:
-        if o in ("-h", "--help"):
+        if o in ["-h", "--help"]:
+            print("aqui no -h")
             usage()
-        elif o in ("-l", "--listen"):
+        elif o in ["-l", "--listen"]:
+            print("aqui no -l")
             listen = True
-        elif o in ("-e", "--execute"):
+        elif o in ["-e", "--execute"]:
+            print("aqui no -e")
             execute = a
-        elif o in ("-c", "--commandshell"):
+        elif o in ["-c", "--commandshell"]:
+            print("aqui no -c")
             command = True
-        elif o in ("-u", "--upload"):
+        elif o in ["-u", "--upload"]:
             upload_destination = a
-        elif o in ("-t", "--target"):
+        elif o in ["-t", "--target"]:
             target = a
-        elif o in ("-p", "--port"):
+        elif o in ["-p", "--port"]:
+            print("aqui no -p")
             port = int(a)
         else:
             assert False, "Unhandled Option"
+        
+    print(target, port)
 
-        # iremos ouvir ou simplesmente enviar dados de stdin?
-        if not listen and len(target) and port > 0:
-            # lê o buffer da linha de comando
-            # isso causará um bloqueio, portanto envie um CTRL-D se não estiver
-            # enviando dados de entrada para stdin
-            buffer = sys.stdin.read()
+    # iremos ouvir ou simplesmente enviar dados de stdin?
+    if not listen and len(target) and port > 0:
+        # le o buffer da linha de comando
+        # isso causara um bloqueio, portanto envie um CTRL-D ou CTRL-Z no WINDOWS, se nao estiver
+        # enviando dados de entrada para stdin
+        buffer = sys.stdin.read() # sys.stdin.read()
 
-            # send data off
-            client_sender(buffer)
+        # send data off
+        client_sender(buffer)
 
-        # iremos ouvir a porta e, potencialmente,
-        # faremos upload de dados, executaremos comandos e deixaremos um shell
-        # de acordo com as opções de linha de comando anteriores
-        if listen:
-            server_loop()
+    # iremos ouvir a porta e, potencialmente,
+    # faremos upload de dados, executaremos comandos e deixaremos um shell
+    # de acordo com as opcoes de linha de comando anteriores
+    if listen:
+        server_loop()
 
 
 main()
