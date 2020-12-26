@@ -35,7 +35,6 @@ def usage():
 
 
 def client_sender(buffer):
-    print("func client_sender() ", target)
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         # conecta-se ao nosso host-alvo
@@ -77,7 +76,6 @@ def client_sender(buffer):
 def server_loop():
     global target
     global port
-    print("func server_loop() ", target, port)
 
     # se nao houver nenhum alvo definido, ouviremos todas as interfaces
     if not len(target):
@@ -104,25 +102,23 @@ def run_command(command):
     try:
         output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
     except Exception as err:
-        print("Failed to execute command.\r\n")
-        print('ERRO ', err)
+        print("[*] Failed to execute command.\r\n")
+        print('[*] ERRO ', err)
 
     # envia os dados de saida de volta ao client
     return output
 
 
 def client_handler(client_socket):
-    global upload
+    global upload_destination
     global execute
     global command
-    print("func client_handler() ", target)
 
     # verifica se e upload
     if len(upload_destination):
-        print("if upload_destination <---")
 
         # le todos os bytes e grava em nosso destino
-        file_buffer = ""
+        file_buffer = b""
 
         # permanece lendo os dados ate que nao haja mais nenhum disponivel
         while True:
@@ -140,9 +136,9 @@ def client_handler(client_socket):
                 file_descriptor.close()
 
                 # confirma que gravou o arquivo
-                client_socket.send(b"Successfully saved file to %s\r\n" % upload_destination)
+                client_socket.send(b"[*] Successfully saved file to %s\r\n" % upload_destination.encode())
             except Exception as err:
-                client_socket.send(b"Failed to save file to %s\r\n" % upload_destination)
+                client_socket.send(b"[*] Failed to save file to %s\r\n" % upload_destination.encode())
                 print(err)
 
     # verifica se e comando
@@ -184,7 +180,7 @@ def main():
     
     # le as opcoes de linha de comando
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hle:t:p:cu")
+        opts, args = getopt.getopt(sys.argv[1:], "hle:t:p:cu:")
     except getopt.GetoptError as err:
         print(err)
         usage()
@@ -205,7 +201,7 @@ def main():
         elif o in ["-p", "--port"]:
             port = int(a)
         else:
-            assert False, "Unhandled Option"
+            assert False, "[*] Unhandled Option"
         
     # iremos ouvir ou simplesmente enviar dados de stdin?
     if not listen and len(target) and port > 0:
