@@ -4,6 +4,8 @@ import getopt
 import threading
 import subprocess
 
+import os
+
 # define algumas variaveis globais
 listen              = False
 command             = False
@@ -37,8 +39,6 @@ def client_sender(buffer):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         # conecta-se ao nosso host-alvo
-        print("1 ", target) #apagar----------------------
-        print('2 ', port) #apagar---------------------
         client.connect((target, port))
 
         if len(buffer):
@@ -97,15 +97,15 @@ def server_loop():
 
 def run_command(command):
     # remove a quebra de linha
-    command = command.rstrip()
-    print("func run_comand() ", target,port)
+    command = command.strip().decode('UTF-8')
+    command = str(command)
 
     # executa o comando e obtem os dados de saida
     try:
         output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
     except Exception as err:
-        output = "Failed to execute command.\r\n"
-        print(err)
+        print("Failed to execute command.\r\n")
+        print('ERRO ', err)
 
     # envia os dados de saida de volta ao client
     return output
@@ -145,14 +145,16 @@ def client_handler(client_socket):
                 client_socket.send(b"Failed to save file to %s\r\n" % upload_destination)
                 print(err)
 
+    # verifica se e comando
+    """
     if len(execute):
         print("if execute <----")
 
         # executa o comando
         output = run_command(execute)
 
-        client_socket.send(output.encode())
-
+        client_socket.send(output)
+    """
     # entra em outro laco se um shell de comandos foi solicitado
     if command:
         while True:
@@ -169,7 +171,7 @@ def client_handler(client_socket):
             response = run_command(cmd_buffer)
 
             # envia de volta a resposta
-            client_socket.send(response.encode())
+            client_socket.send(response)
 
 
 def main():
@@ -179,7 +181,6 @@ def main():
     global command
     global upload_destination
     global target
-    print("func main() ", target) #apagar------------------
 
     if not len(sys.argv[1:]):
         usage()
@@ -190,33 +191,26 @@ def main():
     except getopt.GetoptError as err:
         print(err)
         usage()
-    print("01 ", opts)
-    print("02 ", args)
+
     for o,a in opts:
         if o in ["-h", "--help"]:
-            print("aqui no -h")
             usage()
         elif o in ["-l", "--listen"]:
-            print("aqui no -l")
             listen = True
         elif o in ["-e", "--execute"]:
             print("aqui no -e")
             execute = a
         elif o in ["-c", "--commandshell"]:
-            print("aqui no -c")
             command = True
         elif o in ["-u", "--upload"]:
             upload_destination = a
         elif o in ["-t", "--target"]:
             target = a
         elif o in ["-p", "--port"]:
-            print("aqui no -p")
             port = int(a)
         else:
             assert False, "Unhandled Option"
         
-    print(target, port)
-
     # iremos ouvir ou simplesmente enviar dados de stdin?
     if not listen and len(target) and port > 0:
         # le o buffer da linha de comando
