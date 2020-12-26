@@ -28,8 +28,8 @@ def usage():
                                 file and write to [destination]\r\n""")
     print("Examples: ")
     print("bhpnet.py -t 192.168.0.1 -p 5555 -l -c")
-    print("bhpnet.py -t 192.168.0.1 -p 5555 -l -u=c:\\target.exe")
-    print("bhpnet.py -t 192.168.0.1 -p 5555 -l -e=\"cat /etc/passwd\"")
+    print("bhpnet.py -t 192.168.0.1 -p 5555 -l -u c:\\target.exe")
+    print("bhpnet.py -t 192.168.0.1 -p 5555 -l -e \"cat /etc/passwd\"")
     print("echo 'ABCDFGHI' | ./bhpnet.py -t 192.168.11.12 -p 135")
     sys.exit(0)
 
@@ -146,15 +146,12 @@ def client_handler(client_socket):
                 print(err)
 
     # verifica se e comando
-    """
     if len(execute):
-        print("if execute <----")
-
         # executa o comando
-        output = run_command(execute)
+        output = run_command(execute.encode())
 
         client_socket.send(output)
-    """
+    
     # entra em outro laco se um shell de comandos foi solicitado
     if command:
         while True:
@@ -198,9 +195,8 @@ def main():
         elif o in ["-l", "--listen"]:
             listen = True
         elif o in ["-e", "--execute"]:
-            print("aqui no -e")
             execute = a
-        elif o in ["-c", "--commandshell"]:
+        elif o in ["-c", "--command"]:
             command = True
         elif o in ["-u", "--upload"]:
             upload_destination = a
