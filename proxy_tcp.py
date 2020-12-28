@@ -106,8 +106,8 @@ def hexdump(src, length=16):
 
     s = src[:]
     print(s)
-    hexa = " ".join(["%0*X" % (digits, ord(x)) for x in s.decode()])
-    text = "".join([x if 0x20 <= ord(x) < 0x7F else "." for x in s.decode()])
+    hexa = " ".join(["%0*X" % (digits, ord(x)) for x in s.decode('ascii')])
+    text = "".join([x if 0x20 <= ord(x) < 0x7F else "." for x in s.decode('ascii')])
     result.append("%04X   %-*s   %s" % (1, length * (digits + 1), hexa, text))
 
     print("\n".join(result))
@@ -119,7 +119,7 @@ def receive_from(connection):
 
     # definimos um timeout de 2 segundos; de acordo com o seu alvo,
     # pode ser que esse valor precise ser ajustado
-    connection.settimeout(2)
+    connection.settimeout(10)
 
     try:
         # continua lendo em buffer ate
