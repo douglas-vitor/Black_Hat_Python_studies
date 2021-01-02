@@ -84,34 +84,17 @@ def proxy_handler(client_socket, remote_host, remote_port, receive_first):
             break
 
 
-# esta e uma boa funcao de dumping de valores hexa diretamente obtida dos
-# comentarios em:
-# https://code.activestate.com/recipes/142812-hex-dumper/
-"""
-def hexdump(src, length=16):
-    result = []
-    digits = 4 if isinstance(src, unicode) else 2
-
-    for i in xrange(0, len(src), length):
-       s = src[i:i+length]
-       hexa = b' '.join(["%0*X" % (digits, ord(x))  for x in s])
-       text = b''.join([x if 0x20 <= ord(x) < 0x7F else b'.'  for x in s])
-       result.append( b"%04X   %-*s   %s" % (i, length*(digits + 1), hexa, text) )
-
-    print(b'\n'.join(result))
-"""
 def hexdump(src, length=16):
     result = []
     digits = 4
 
     s = src[:]
     print(s)
-    hexa = " ".join(["%0*X" % (digits, ord(x)) for x in s.decode('ascii')])
-    text = "".join([x if 0x20 <= ord(x) < 0x7F else "." for x in s.decode('ascii')])
+    hexa = " ".join(["%0*X" % (digits, ord(x)) for x in s.decode('utf-8').strip()])
+    text = "".join([x if 0x20 <= ord(x) < 0x7F else "." for x in s.decode('utf-8').strip()])
     result.append("%04X   %-*s   %s" % (1, length * (digits + 1), hexa, text))
 
     print("\n".join(result))
-
 
 
 def receive_from(connection):
@@ -119,7 +102,7 @@ def receive_from(connection):
 
     # definimos um timeout de 2 segundos; de acordo com o seu alvo,
     # pode ser que esse valor precise ser ajustado
-    connection.settimeout(10)
+    connection.settimeout(2)
 
     try:
         # continua lendo em buffer ate
