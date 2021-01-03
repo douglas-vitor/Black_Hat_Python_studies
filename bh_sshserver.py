@@ -6,7 +6,7 @@ import sys
 # usando a chave dos arquivos de demonstracao do paramiko
 host_key = paramiko.RSAKey(filename='test_rsa.key')
 class Server (paramiko.ServerInterface):
-    def __init__(self):
+    def _init_(self):
         self.event = threading.Event()
     def check_channel_request(self, kind, chanid):
         if kind == 'session':
@@ -42,15 +42,15 @@ try:
     chan = bhSession.accept(20)
     print('[+] Authenticated!')
     print(chan.recv(1024))
-    chan.send('Wellcome to bh_ssh! ')
+    chan.send(b'Wellcome to bh_ssh!')
     while True:
         try:
             command = input('Enter command: ').strip('\n')
             if command != 'exit':
                 chan.send(command)
-                print(chan.recv(1024) + '\n')
+                print(chan.recv(1024) + b'\n')
             else:
-                chan.send('exit')
+                chan.send(b'exit')
                 print('Exiting.')
                 bhSession.close()
                 raise Exception ('exit')
@@ -58,7 +58,7 @@ try:
             bhSession.close()
 
 except Exception as err:
-    print('[-] Caught exception: ', str(err))
+    print('[-] Caught exception: ', err)
     try:
         bhSession.close()
     except:
